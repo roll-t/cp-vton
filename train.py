@@ -79,9 +79,12 @@ def get_opt():
 def train_gmm(opt, train_loader, model, board):
     model.cpu()  # Chuyển mô hình ra khỏi GPU
     model.train()
+    
     # criterion
     criterionL1 = nn.L1Loss()
+    
     gicloss = GicLoss(opt)
+    
     optimizer = torch.optim.Adam(
         model.parameters(), lr=opt.lr, betas=(0.5, 0.999))
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda step: 1.0 -
@@ -186,18 +189,25 @@ def train_gmm(opt, train_loader, model, board):
                 opt.checkpoint_dir, opt.name, 'step_%06d.pth' % (step+1)))
             
             
-      
 def train_tom(opt, train_loader, model, board):
     model.cuda()
     model.train()
-
+    
     # criterion
-    criterionL1 = nn.L1Loss()
-    criterionVGG = VGGLoss()
+    criterionL1 = nn.L1Loss()# Định nghĩa hàm loss dựa trên sự khác biệt giữa hai tensor bằng norm L1 (Mean Absolute Error). 
+    # Hàm này được sử dụng để tính loss cho việc so sánh giữa ảnh đã biến đổi
+    #(warped_cloth) và ảnh mục tiêu (im_c).
+    # l1 được tính bằng cách lấy tổng các giá trị vector trong không gian vd  |x1| + |x2| + ... + |xn|.
+    #chuẩn hoá L1 được sử dụng để tính toán sự khác biệt giữa hai tensor  ( sự sai lệch giữa dự đoán và mục tiêu )
+   
+    criterionVGG = VGGLoss()# định nghĩa hàm VGGlosss
+   
     criterionMask = nn.L1Loss()
 
     # optimizer
+    #  model. Adam là một thuật toán tối ưu hóa thường được sử dụng để điều chỉnh trọng số của mạng neural trong quá trình huấn luyện.
     optimizer = torch.optim.Adam(
+        # lr=opt.lr: Đây là tốc độ học
         model.parameters(), lr=opt.lr, betas=(0.5, 0.999))
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda step: 1.0 -
                                                   max(0, step - opt.keep_step) / float(opt.decay_step + 1))

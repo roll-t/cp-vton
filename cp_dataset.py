@@ -227,6 +227,9 @@ if __name__ == "__main__":
     dataset = CPDataset(opt)
     
     print("Kiểm tra tập dữ liệu cho mô-đun khớp hình học!")
+        # In ra độ dài của tập dữ liệu trước khi chia thành các batch
+    print('Tổng độ dài của tập dữ liệu: %05d' % len(dataset))
+    
     data_loader = CPDataLoader(opt, dataset)
     print('Size of the dataset: %05d, dataloader: %04d'
           % (len(dataset), len(data_loader.data_loader)))

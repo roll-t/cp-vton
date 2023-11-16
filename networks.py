@@ -401,11 +401,14 @@ class UnetSkipConnectionBlock(nn.Module):
         else:
             return torch.cat([x, self.model(x)], 1)
 
-
+# được sử dụng để trích xuất các đặc trưng từ hình ảnh
+# Mạng này thường được sử dụng trong quá trình xử lý ảnh và
+# trích xuất thông tin quan trọng từ các hình ảnh.
 class Vgg19(nn.Module):
     def __init__(self, requires_grad=False):
         super(Vgg19, self).__init__()
         vgg_pretrained_features = models.vgg19(pretrained=True).features
+        # Mạng VGG19 gốc có nhiều lớp (layers)  các lớp này được chia thành năm phần chính
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()
@@ -423,6 +426,7 @@ class Vgg19(nn.Module):
             self.slice5.add_module(str(x), vgg_pretrained_features[x])
         if not requires_grad:
             for param in self.parameters():
+            # tất cả các tham số (weights) của mô hình tùy chỉnh Vgg19 sẽ không cần được huấn luyện lại và sẽ được đóng băng.
                 param.requires_grad = False
 
     def forward(self, X):
@@ -435,13 +439,17 @@ class Vgg19(nn.Module):
         return out
 
 
+# đặc trưng của hàm này là 
+# đo lường sự tương tự giữa hai hình ảnh dựa trên sự khác biệt trong biểu diễn đặc trưng của chúng.
 class VGGLoss(nn.Module):
     def __init__(self, layids=None):
         super(VGGLoss, self).__init__()
         self.vgg = Vgg19()
         self.vgg.cuda()
         self.criterion = nn.L1Loss()
-        self.weights = [1.0/32, 1.0/16, 1.0/8, 1.0/4, 1.0]
+        
+        # Mất mát cuối cùng là tổng có trọng số của sự khác biệt giữa các lớp đặc trưng của x và y. 
+        self.weights = [1.0/32, 1.0/16, 1.0/8, 1.0/4, 1.0] 
         self.layids = layids
 
     def forward(self, x, y):
